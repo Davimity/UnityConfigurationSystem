@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
@@ -9,6 +10,12 @@ public static class Configurator
 
     /// <returns>The actual path of the Configurator</returns>
     public static string getPath() => path;
+
+    /// <summary> Create a new config file on the specified path. If the directory doesn't exist, it will be created. </summary>
+    public static void CreateConfig(){
+        if (!Directory.Exists(Path.GetDirectoryName(path))) Directory.CreateDirectory(Path.GetDirectoryName(path));
+        File.WriteAllText(path, "");
+    }
 
     /// <summary> Set the path of the Configurator. It must be rooted and can't be null. </summary>
     /// <exception cref="System.Exception"></exception>
@@ -34,7 +41,9 @@ public static class Configurator
             string[] lines = System.IO.File.ReadAllLines(path);
             foreach (string line in lines) {
                 string[] parts = line.Split('=');
-                config.Add(parts[0], parts[1]);
+
+                if (config.ContainsKey(parts[0])) config[parts[0]] = parts[1];
+                else config.Add(parts[0], parts[1]);
             }
         }catch(System.Exception e){
             throw new System.Exception("Configurator: Error loading configuration: " + e.Message);
@@ -43,7 +52,8 @@ public static class Configurator
 
     /// <summary> Save the actual configurations saved on the dictionary on the .config file. Checks the .config file integrity (if exists or not, not text integrity)</summary>
     /// <exception cref="System.Exception"></exception>
-    public static void SaveConfig(){
+    public static void SaveConfig()
+    {
         CheckConfigIntegrity();
         try{
             string[] lines = new string[config.Count];
@@ -52,9 +62,12 @@ public static class Configurator
                 lines[i] = $"{entry.Key}={entry.Value}";
                 i++;
             }
-            System.IO.File.WriteAllLines(path, lines);
-        } catch(System.Exception e){
-            throw new System.Exception("Configurator: Error saving configuration: " + e.Message);
+
+            File.WriteAllLines(path, lines);
+        }
+        catch (Exception e)
+        {
+            throw new Exception("Configurator: Error saving configuration: " + e.Message);
         }
     }
 
